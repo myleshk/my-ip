@@ -1,6 +1,7 @@
 const functions = require("firebase-functions");
 const api = require("./api.js");
 const axios = require("axios");
+const cors = require("./cors.js");
 
 const runtimeOpts = {
   timeoutSeconds: 5,
@@ -24,24 +25,27 @@ for (const {apiPath, code, name} of locations) {
       .runWith(runtimeOpts)
       .region(code)
       .https.onRequest(function(req, res) {
-        const forwardedIps = req.headers["x-forwarded-for"].split(",");
-        const clientIp = forwardedIps[0];
+        // enable CORS
+        cors(req, res, ()=>{
+          const forwardedIps = req.headers["x-forwarded-for"].split(",");
+          const clientIp = forwardedIps[0];
 
-        if (!clientIp) {
-          return res.status(500).json({error: "Failed to get client IP"});
-        }
+          if (!clientIp) {
+            return res.status(500).json({error: "Failed to get client IP"});
+          }
 
-        axios.get(`http://api.ipstack.com/${clientIp}`, {params: {access_key: "f14a6a34daf6ad670c7fcbc6e9619732"}})
-            .then(function(response) {
-              return res.json({
-                server: {
-                  location: name,
-                },
-                client: response.data,
+          axios.get(`http://api.ipstack.com/${clientIp}`, {params: {access_key: "f14a6a34daf6ad670c7fcbc6e9619732"}})
+              .then(function(response) {
+                return res.json({
+                  server: {
+                    location: name,
+                  },
+                  client: response.data,
+                });
+              })
+              .catch(function(error) {
+                res.status(500).json({error});
               });
-            })
-            .catch(function(error) {
-              res.status(500).json({error});
-            });
+        });
       });
 }
