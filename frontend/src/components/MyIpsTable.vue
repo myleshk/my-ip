@@ -1,0 +1,53 @@
+<template>
+  <div>
+    <h3>Your IPs viewed from different servers</h3>
+    <table class="table table-sm table-bordered">
+      <thead>
+        <th>Server Location</th>
+        <th>Your IP</th>
+        <th>Your IP Geolocation</th>
+      </thead>
+      <tbody>
+        <tr v-for="(record, recordIndex) of records" :key="recordIndex">
+          <td>{{ record.server.location }}</td>
+          <td>{{ record.client.ip }}</td>
+          <td>{{ record.client.city }}, {{ record.client.country_name }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</template>
+
+<script>
+import { provide } from "vue";
+import axios from "axios";
+
+export default {
+  name: "MyIpsTable",
+  props: {},
+  async setup() {
+    const locationApis = [
+      "https://asia-east2-myip-21bb8.cloudfunctions.net/hk",
+      "https://asia-northeast1-myip-21bb8.cloudfunctions.net/jp",
+      "https://europe-west1-myip-21bb8.cloudfunctions.net/be",
+      "https://europe-west2-myip-21bb8.cloudfunctions.net/uk",
+      "https://us-east1-myip-21bb8.cloudfunctions.net/us"
+    ];
+
+    const records = [];
+    for (const locationApi of locationApis) {
+      const { data } = await axios.get(locationApi);
+      records.push(data);
+    }
+
+    provide("records", records);
+
+    return {
+      records
+    };
+  },
+  data() {
+    return {};
+  }
+};
+</script>
