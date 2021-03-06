@@ -1,7 +1,13 @@
 const functions = require("firebase-functions");
 const api = require("./api.js");
+const axios = require("axios");
 
-exports.api = functions.https.onRequest(api);
+const runtimeOpts = {
+  timeoutSeconds: 5,
+  memory: "128MB",
+};
+
+exports.api = functions.runWith(runtimeOpts).https.onRequest(api);
 
 /**
  * get client IP from different regions (JSON)
@@ -15,12 +21,27 @@ const locations = [
 ];
 for (const {apiPath, code, name} of locations) {
   exports[apiPath] = functions
+      .runWith(runtimeOpts)
       .region(code)
       .https.onRequest(function(req, res) {
         const forwardedIps = req.headers["x-forwarded-for"].split(",");
-        return res.json({
-          clientIp: forwardedIps[0],
-          location: name,
-        });
+        const clientIp = forwardedIps[0];
+
+        if (!clientIp) {
+          return res.status(500).json({error: "Failed to get client IP"});
+        }
+
+        axios.get(`http://api.ipstack.com/${clientIp}`, {params: {access_key: "f14a6a34daf6ad670c7fcbc6e9619732"}})
+            .then(function(response) {
+              return res.json({
+                server: {
+                  location: name,
+                },
+                client: response.data,
+              });
+            })
+            .catch(function(error) {
+              res.status(500).json({error});
+            });
       });
 }
