@@ -19,13 +19,12 @@
 </template>
 
 <script>
-import { provide } from "vue";
+import { ref } from "vue";
 import axios from "axios";
 
 export default {
   name: "MyIpsTable",
-  props: {},
-  async setup() {
+  setup() {
     const locationApis = [
       "https://asia-east2-myip-21bb8.cloudfunctions.net/hk",
       "https://asia-northeast1-myip-21bb8.cloudfunctions.net/jp",
@@ -34,20 +33,17 @@ export default {
       "https://us-east1-myip-21bb8.cloudfunctions.net/us"
     ];
 
-    const records = [];
-    for (const locationApi of locationApis) {
-      const { data } = await axios.get(locationApi);
-      records.push(data);
-    }
+    const records = ref([]);
 
-    provide("records", records);
+    for (const locationApi of locationApis) {
+      axios.get(locationApi).then(response => {
+        records.value.push(response.data);
+      });
+    }
 
     return {
       records
     };
-  },
-  data() {
-    return {};
   }
 };
 </script>
