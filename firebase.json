@@ -1,23 +1,26 @@
 {
-  "functions": {
-    "predeploy": [
-      "npm --prefix \"$RESOURCE_DIR\" run lint"
-    ],
-    "source": "functions"
-  },
-  "hosting": {
-    "public": "public",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "rewrites": [
-      {
-          "source": "/api/**",
-          "function": "api"
-      }
-    ]  
-  }
+	"functions": {
+		"predeploy": [
+			"npm --prefix \"$RESOURCE_DIR\" run lint"
+		],
+		"source": "functions"
+	},
+	"hosting": {
+		"public": "frontend/dist",
+		"ignore": [
+			"firebase.json",
+			"**/.*",
+			"**/node_modules/**"
+		],
+		"rewrites": [
+			{
+				"source": "/api/**",
+				"function": "api"
+			},
+			{
+				"source": "**",
+				"destination": "/index.html"
+			}
+		]
+	}
 }
-
