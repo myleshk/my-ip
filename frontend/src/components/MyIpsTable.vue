@@ -11,7 +11,7 @@
         <tr v-for="(record, recordIndex) of records" :key="recordIndex">
           <td>{{ record.server.location }}</td>
           <td>{{ record.client.ip }}</td>
-          <td>{{ record.client.city }}, {{ record.client.country_name }}</td>
+          <td>{{ displayedClientLocation(record) }}</td>
         </tr>
       </tbody>
     </table>
@@ -30,7 +30,8 @@ export default {
       "https://asia-northeast1-myip-21bb8.cloudfunctions.net/jp",
       "https://europe-west1-myip-21bb8.cloudfunctions.net/be",
       "https://europe-west2-myip-21bb8.cloudfunctions.net/uk",
-      "https://us-east1-myip-21bb8.cloudfunctions.net/us"
+      "https://us-east1-myip-21bb8.cloudfunctions.net/us",
+      "https://service-ph5xxk5m-1251959541.gz.apigw.tencentcs.com/test/myip"
     ];
 
     const records = ref([]);
@@ -44,6 +45,14 @@ export default {
     return {
       records
     };
+  },
+
+  methods: {
+    displayedClientLocation(record) {
+      return [record.client.city, record.client.country_name]
+        .filter(v => v)
+        .join(", ");
+    }
   }
 };
 </script>
