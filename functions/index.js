@@ -15,7 +15,6 @@ exports.api = functions.runWith(runtimeOpts).https.onRequest(api);
  */
 const locations = [
   {apiPath: "us", code: "us-east1", name: "South Carolina, US"},
-  {apiPath: "be", code: "europe-west1", name: "Belgium, BE"},
   {apiPath: "uk", code: "europe-west2", name: "London, UK"},
   {apiPath: "hk", code: "asia-east2", name: "Hong Kong, HK"},
   {apiPath: "jp", code: "asia-northeast1", name: "Tokyo, JP"},
@@ -25,26 +24,24 @@ for (const {apiPath, code, name} of locations) {
       .runWith(runtimeOpts)
       .region(code)
       .https.onRequest(function(req, res) {
-        // enable CORS
-        cors(req, res, ()=>{
-          const forwardedIps = req.headers["x-forwarded-for"].split(",");
-          const clientIp = forwardedIps[0];
+      // enable CORS
+        cors(req, res, function() {
+          const clientIp = req.headers["x-forwarded-for"].split(",")[0];
 
           if (!clientIp) {
             return res.status(500).json({error: "Failed to get client IP"});
           }
-
-          axios.get(`http://api.ipstack.com/${clientIp}`, {params: {access_key: "f14a6a34daf6ad670c7fcbc6e9619732"}})
-              .then(function(response) {
+          axios
+              .get(`http://ip-api.com/json/${clientIp}`)
+              .then((response) => {
                 return res.json({
-                  server: {
-                    location: name,
-                  },
-                  client: response.data,
+                  serverName: name,
+                  clientIp,
+                  geo: response.data,
                 });
               })
-              .catch(function(error) {
-                res.status(500).json({error});
+              .catch((error) => {
+                return res.status(500).json({error});
               });
         });
       });
