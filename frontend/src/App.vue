@@ -1,10 +1,17 @@
+<script setup lang="ts">
+import { RouterLink, RouterView } from "vue-router";
+</script>
+
 <template>
   <div class="container-fluid">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/doc">Doc</router-link>
-    </div>
-    <router-view />
+    <header>
+      <nav>
+        <RouterLink to="/">Home</RouterLink> |
+        <RouterLink to="/doc">Doc</RouterLink>
+      </nav>
+    </header>
+
+    <RouterView />
   </div>
 </template>
 
@@ -15,15 +22,30 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-#nav {
+header {
+  line-height: 1.5;
+  max-height: 100vh;
+}
+
+@media (hover: hover) {
+  a:hover {
+    background-color: hsla(160, 100%, 37%, 0.2);
+  }
+}
+
+nav {
   padding: 30px 0 10px 0;
 }
 
-#nav a {
+nav a {
   font-weight: bold;
 }
 
-#nav a.router-link-exact-active {
-  color: black;
+nav a.router-link-exact-active {
+  color: var(--color-text);
+}
+
+nav a.router-link-exact-active:hover {
+  background-color: transparent;
 }
 </style>
