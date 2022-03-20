@@ -1,48 +1,32 @@
 const functions = require("firebase-functions");
-const api = require("./api.js");
-const axios = require("axios");
-const cors = require("./cors.js");
+const myip = require("./myip.js");
+const geo = require("./geo.js");
 
 const runtimeOpts = {
   timeoutSeconds: 5,
   memory: "128MB",
 };
 
-exports.api = functions.runWith(runtimeOpts).https.onRequest(api);
+exports.geo = functions
+    .runWith(runtimeOpts)
+    .region("asia-east2")
+    .https.onRequest(geo);
 
 /**
  * get client IP from different regions (JSON)
  */
 const locations = [
-  {apiPath: "us", code: "us-east1", name: "South Carolina, US"},
-  {apiPath: "uk", code: "europe-west2", name: "London, UK"},
-  {apiPath: "hk", code: "asia-east2", name: "Hong Kong, HK"},
-  {apiPath: "jp", code: "asia-northeast1", name: "Tokyo, JP"},
+  // Must be us-central1 in order to be used by hosting rewrite,
+  // because Firebase Hosting supports Cloud Functions in us-central1 only.
+  // https://firebase.google.com/docs/hosting/full-config#rewrite-functions
+  {apiPath: "us", regionCode: "us-central1"},
+  {apiPath: "uk", regionCode: "europe-west2"},
+  {apiPath: "hk", regionCode: "asia-east2"},
+  {apiPath: "jp", regionCode: "asia-northeast1"},
 ];
-for (const {apiPath, code, name} of locations) {
+for (const {apiPath, regionCode} of locations) {
   exports[apiPath] = functions
       .runWith(runtimeOpts)
-      .region(code)
-      .https.onRequest(function(req, res) {
-      // enable CORS
-        cors(req, res, function() {
-          const clientIp = req.headers["x-forwarded-for"].split(",")[0];
-
-          if (!clientIp) {
-            return res.status(500).json({error: "Failed to get client IP"});
-          }
-          axios
-              .get(`http://ip-api.com/json/${clientIp}`)
-              .then((response) => {
-                return res.json({
-                  serverName: name,
-                  clientIp,
-                  geo: response.data,
-                });
-              })
-              .catch((error) => {
-                return res.status(500).json({error});
-              });
-        });
-      });
+      .region(regionCode)
+      .https.onRequest(myip);
 }

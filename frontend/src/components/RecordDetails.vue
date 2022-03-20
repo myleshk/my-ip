@@ -2,7 +2,6 @@
 import { defineComponent } from "vue";
 import type { PropType } from "vue";
 import type { IpRecord } from "@/types/ipRecord";
-import { startCase } from "lodash";
 
 export default defineComponent({
   props: {
@@ -12,25 +11,24 @@ export default defineComponent({
     },
   },
   computed: {
-    detailsToShow() {
-      const geo = this.record.geo;
-      if (!geo) return [];
+    geo() {
+      return this.record.geo;
+    },
+    extraDetailsToShow() {
+      if (!this.geo) return [];
 
-      const detailsToShow: [string, string][] = [];
-      for (const key of [
-        "country",
-        "regionName",
-        "city",
-        "lat",
-        "lon",
-        "isp",
-        "org",
-        "as",
+      const extraDetailsToShow: [string, string][] = [];
+      for (const [key, name] of [
+        ["zip", "Zip"],
+        ["isp", "ISP"],
+        ["org", "Org"],
+        ["as", "ASN"],
       ]) {
-        const val = geo[key as keyof IpRecord["geo"]];
-        detailsToShow.push([startCase(key), val]);
+        const val = this.geo[key as keyof IpRecord["geo"]];
+        extraDetailsToShow.push([name, val]);
       }
-      return detailsToShow;
+
+      return extraDetailsToShow.filter(([, val]) => val);
     },
   },
 });
@@ -38,9 +36,37 @@ export default defineComponent({
 
 <template>
   <div class="details">
-    <div class="row">
+    <div class="d-flex justify-content-between">
+      <div class="title flex-grow-1">Geo info about {{ record.clientIp }}</div>
+      <a
+        href="#"
+        class="close-button text-decoration-none"
+        @click="$emit('close')"
+      >
+        Close
+      </a>
+    </div>
+    <div class="row no-gutters body">
+      <div class="col-12 col-md-6 row">
+        <div class="col col-3 key">Location</div>
+        <div class="col col-9 value">
+          {{ geo?.city }}, {{ geo?.regionName }}, {{ geo?.country }}
+        </div>
+      </div>
+      <div class="col-12 col-md-6 row">
+        <div class="col col-3 key">Lat/Long</div>
+        <div class="col col-9 value">
+          <a
+            :href="`https://maps.google.com/?q=${geo?.lat},${geo?.lon}`"
+            target="_blank"
+            class="google-map-link"
+          >
+            {{ geo?.lat }}, {{ geo?.lon }}
+          </a>
+        </div>
+      </div>
       <div
-        v-for="(detail, index) in detailsToShow"
+        v-for="(detail, index) in extraDetailsToShow"
         :key="index"
         class="col-12 col-md-6 row"
       >
@@ -49,20 +75,35 @@ export default defineComponent({
       </div>
     </div>
   </div>
-  <a class="btn btn-secondary btn-sm close-button" @click="$emit('close')"
-    >Close</a
-  >
 </template>
 
 <style scoped>
 .details {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 0.5rem 0.5rem 0 0;
+  overflow: hidden;
+}
+.title {
+  font-weight: 800;
+  font-size: 14pt;
+  background-color: #555;
+  color: #fff;
+  padding: 0.5rem 1rem;
+}
+.close-button {
+  font-weight: 800;
+  font-size: 14pt;
+  background-color: #555;
+  color: #fff;
+  border-radius: 0 0.5rem 0 0;
+  padding: 0.5rem 1rem;
+}
+.close-button:hover {
   background-color: #eee;
-  border: 1px solid #aaa;
-  border-radius: 0.3rem;
-  padding: 1rem;
-  position: absolute;
-  left: 0.5rem;
-  right: 0.5rem;
+  color: #555;
+}
+.body {
+  padding: 0.5rem 1rem;
 }
 .key,
 .value {
@@ -74,10 +115,5 @@ export default defineComponent({
 }
 .value {
   font-weight: 200;
-}
-.close-button {
-  position: absolute;
-  right: 1.5rem;
-  margin-top: 0.5rem;
 }
 </style>

@@ -27,12 +27,6 @@ header {
   max-height: 100vh;
 }
 
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
-}
-
 nav {
   padding: 30px 0 10px 0;
 }
