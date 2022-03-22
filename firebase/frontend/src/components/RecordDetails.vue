@@ -37,7 +37,7 @@ export default defineComponent({
 <template>
   <div class="details">
     <div class="d-flex justify-content-between">
-      <div class="title flex-grow-1">Geo info about {{ record.clientIp }}</div>
+      <div class="title flex-grow-1">{{ record.clientIp }}</div>
       <a
         href="#"
         class="close-button text-decoration-none"

@@ -9,7 +9,6 @@ const runtimeOpts = {
 
 exports.geo = functions
     .runWith(runtimeOpts)
-    .region("asia-east2")
     .https.onRequest(geo);
 
 /**

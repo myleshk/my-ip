@@ -58,9 +58,7 @@ export default defineComponent({
     ).then((clientIps) => {
       new Set(clientIps).forEach((clientIp) => {
         axios
-          .get(
-            `https://asia-east2-myip-21bb8.cloudfunctions.net/geo/${clientIp}`
-          )
+          .get(`https://ip.myles.hk/geo/${clientIp}`)
           .then(({ data }) => {
             if (data.status === "success") {
               records.value = records.value.map((record) =>

@@ -5,7 +5,7 @@ const axios = require("axios");
 const app = express();
 app.use(cors({origin: true}));
 
-app.get("/:ip", (req, res) => {
+app.get("/geo/:ip", (req, res) => {
   const ip = req.params.ip;
 
   if (ip) {

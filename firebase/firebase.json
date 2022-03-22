@@ -18,6 +18,10 @@
 				"function": "us"
 			},
 			{
+				"source": "/geo/*",
+				"function": "geo"
+			},
+			{
 				"source": "**",
 				"destination": "/index.html"
 			}
