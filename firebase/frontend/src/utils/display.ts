@@ -1,5 +1,5 @@
-import type { IpRecord } from "@/types/ipRecord";
+import type { IpGeoRecord } from "@/types/ipGeoRecord";
 
-export function displayedClientLocation(recordGeo: IpRecord["geo"]) {
+export function displayedClientLocation(recordGeo: IpGeoRecord) {
   return [recordGeo?.city, recordGeo?.countryCode].filter((v) => v).join(", ");
 }

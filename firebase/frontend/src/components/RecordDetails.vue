@@ -1,30 +1,31 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import type { PropType } from "vue";
-import type { IpRecord } from "@/types/ipRecord";
+import type { IpGeoRecord } from "@/types/ipGeoRecord";
 
 export default defineComponent({
   props: {
-    record: {
-      type: Object as PropType<IpRecord>,
+    ip: {
+      type: String,
+      required: true,
+    },
+    geoRecord: {
+      type: Object as PropType<IpGeoRecord>,
       required: true,
     },
   },
   computed: {
-    geo() {
-      return this.record.geo;
-    },
     extraDetailsToShow() {
-      if (!this.geo) return [];
+      if (!this.geoRecord) return [];
 
-      const extraDetailsToShow: [string, string][] = [];
+      const extraDetailsToShow: [string, string | number][] = [];
       for (const [key, name] of [
         ["zip", "Zip"],
         ["isp", "ISP"],
         ["org", "Org"],
         ["as", "ASN"],
       ]) {
-        const val = this.geo[key as keyof IpRecord["geo"]];
+        const val = this.geoRecord[key as keyof IpGeoRecord];
         extraDetailsToShow.push([name, val]);
       }
 
@@ -37,7 +38,7 @@ export default defineComponent({
 <template>
   <div class="details">
     <div class="d-flex justify-content-between">
-      <div class="title flex-grow-1">{{ record.clientIp }}</div>
+      <div class="title flex-grow-1">{{ ip }}</div>
       <a
         href="#"
         class="close-button text-decoration-none"
@@ -50,18 +51,19 @@ export default defineComponent({
       <div class="col-12 col-md-6 row">
         <div class="col col-3 key">Location</div>
         <div class="col col-9 value">
-          {{ geo?.city }}, {{ geo?.regionName }}, {{ geo?.country }}
+          {{ geoRecord.city }}, {{ geoRecord.regionName }},
+          {{ geoRecord.country }}
         </div>
       </div>
       <div class="col-12 col-md-6 row">
         <div class="col col-3 key">Lat/Long</div>
         <div class="col col-9 value">
           <a
-            :href="`https://maps.google.com/?q=${geo?.lat},${geo?.lon}`"
+            :href="`https://maps.google.com/?q=${geoRecord.lat},${geoRecord.lon}`"
             target="_blank"
             class="google-map-link"
           >
-            {{ geo?.lat }}, {{ geo?.lon }}
+            {{ geoRecord.lat }}, {{ geoRecord.lon }}
           </a>
         </div>
       </div>

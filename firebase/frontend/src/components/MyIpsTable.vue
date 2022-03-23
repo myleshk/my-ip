@@ -1,96 +1,102 @@
 <script lang="ts">
-import { defineComponent, ref } from "vue";
-import type { Ref } from "vue";
+import { defineComponent, reactive, ref } from "vue";
 import axios from "axios";
-import type { IpRecord } from "@/types/ipRecord";
+import type { MyIpRecord } from "@/types/myIpRecord";
+import type { IpGeoRecord } from "@/types/ipGeoRecord";
 import RecordDetails from "./RecordDetails.vue";
 import { displayedClientLocation } from "@/utils/display";
+
+const myipApis = [
+  {
+    serverName: "HK",
+    url: "https://asia-east2-myip-21bb8.cloudfunctions.net/hk/myip",
+  },
+  {
+    serverName: "JP",
+    url: "https://asia-northeast1-myip-21bb8.cloudfunctions.net/jp/myip",
+  },
+  {
+    serverName: "UK",
+    url: "https://europe-west2-myip-21bb8.cloudfunctions.net/uk/myip",
+  },
+  {
+    serverName: "US",
+    url: "https://us-central1-myip-21bb8.cloudfunctions.net/us/myip",
+  },
+  {
+    serverName: "CN",
+    url: "https://service-ph5xxk5m-1251959541.gz.apigw.tencentcs.com/test/myip",
+  },
+];
 
 export default defineComponent({
   components: {
     RecordDetails,
   },
-  setup() {
-    const myipApis = [
-      {
-        serverName: "HK",
-        url: "https://asia-east2-myip-21bb8.cloudfunctions.net/hk/myip",
-      },
-      {
-        serverName: "JP",
-        url: "https://asia-northeast1-myip-21bb8.cloudfunctions.net/jp/myip",
-      },
-      {
-        serverName: "UK",
-        url: "https://europe-west2-myip-21bb8.cloudfunctions.net/uk/myip",
-      },
-      {
-        serverName: "US",
-        url: "https://us-central1-myip-21bb8.cloudfunctions.net/us/myip",
-      },
-      {
-        serverName: "CN",
-        url: "https://service-ph5xxk5m-1251959541.gz.apigw.tencentcs.com/test/myip",
-      },
-    ];
 
-    const records: Ref<IpRecord[]> = ref([]);
+  setup() {
+    const myIpRecords = reactive<MyIpRecord[]>([]);
+    const ipGeoDict = reactive<Record<string, IpGeoRecord | null>>({});
+    const ipToShowDetails = ref<string | null>(null);
 
     // get IP and geo info from APIs
-    Promise.all(
-      myipApis.map(({ serverName, url }) =>
-        axios
-          .get(url)
-          .then(({ data: { clientIp } }) => {
-            if (clientIp) {
-              records.value.push({
-                serverName,
-                clientIp,
+    myipApis.map(({ serverName, url }) =>
+      axios
+        .get(url)
+        .then(({ data: { clientIp } }) => {
+          if (clientIp) {
+            myIpRecords.push({
+              serverName,
+              clientIp,
+            });
+            console.log(51, serverName, "finished", Object.keys(ipGeoDict));
+
+            if (clientIp in ipGeoDict) {
+              // already exists, finish
+              return;
+            }
+            // get IP geo info
+            // set placeholder first so this won't be duplicately called
+            ipGeoDict[clientIp] = null;
+            axios
+              .get(`https://ip.myles.hk/geo/${clientIp}`)
+              .then(({ data }) => {
+                if (data.status === "success") {
+                  ipGeoDict[clientIp] = data;
+                }
+              })
+              .catch((error) => {
+                console.error(`Error geo info for IP ${clientIp}`, error);
               });
-            }
-            return (clientIp ?? "") as string;
-          })
-          .catch((error) => {
-            // display and error and continue
-            console.error(`Error getting my IP from ${serverName}`, error);
-          })
-      )
-    ).then((clientIps) => {
-      new Set(clientIps).forEach((clientIp) => {
-        axios
-          .get(`https://ip.myles.hk/geo/${clientIp}`)
-          .then(({ data }) => {
-            if (data.status === "success") {
-              records.value = records.value.map((record) =>
-                record.clientIp === clientIp ? { ...record, geo: data } : record
-              );
-            }
-          })
-          .catch((error) => {
-            console.error(`Error geo info for IP ${clientIp}`, error);
-          });
-      });
-    });
+          }
+        })
+        .catch((error) => {
+          // display and error and continue
+          console.error(`Error getting my IP from ${serverName}`, error);
+        })
+    );
 
     return {
-      records,
+      myIpRecords,
+      ipGeoDict,
+      ipToShowDetails,
       displayedClientLocation,
     };
   },
 
   methods: {
-    async showRecordDetails(record: IpRecord) {
-      this.recordToShowDetails = record;
+    async showRecordDetails(myIpRecord: MyIpRecord) {
+      this.ipToShowDetails = myIpRecord.clientIp;
     },
     hideRecordDetails() {
-      this.recordToShowDetails = null;
+      this.ipToShowDetails = null;
     },
   },
 
-  data() {
-    return {
-      recordToShowDetails: null as IpRecord | null,
-    };
+  computed: {
+    geoRecordToShowDetails(): IpGeoRecord | null {
+      return this.ipToShowDetails ? this.ipGeoDict[this.ipToShowDetails] : null;
+    },
   },
 });
 </script>
@@ -100,8 +106,9 @@ export default defineComponent({
     <h4>Your IP viewed from different locations</h4>
 
     <RecordDetails
-      v-if="recordToShowDetails"
-      :record="recordToShowDetails"
+      v-if="ipToShowDetails && geoRecordToShowDetails"
+      :ip="ipToShowDetails"
+      :geo-record="geoRecordToShowDetails"
       @close="hideRecordDetails"
     />
 
@@ -114,14 +121,16 @@ export default defineComponent({
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(record, recordIndex) of records" :key="recordIndex">
-          <td>{{ record.serverName }}</td>
+        <tr v-for="(myIpRecord, index) of myIpRecords" :key="index">
+          <td>{{ myIpRecord.serverName }}</td>
           <td>
-            {{ record.clientIp }}
+            {{ myIpRecord.clientIp }}
           </td>
           <td>
-            <a href="#" @click="showRecordDetails(record)">
-              {{ displayedClientLocation(record.geo) }}
+            <a href="#" @click="showRecordDetails(myIpRecord)">
+              {{
+                ipGeoDict[myIpRecord.clientIp] && displayedClientLocation(ipGeoDict[myIpRecord.clientIp]!)
+              }}
             </a>
           </td>
         </tr>
