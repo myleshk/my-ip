@@ -25,7 +25,7 @@ const myipApis = [
   },
   {
     serverName: "CN",
-    url: "https://service-ph5xxk5m-1251959541.gz.apigw.tencentcs.com/test/myip",
+    url: "https://my-ip-ip-kcobqzfkvk.cn-hangzhou.fcapp.run/myip",
   },
 ];
 
