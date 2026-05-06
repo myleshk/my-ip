@@ -73,7 +73,7 @@ export default defineComponent({
         .catch((error) => {
           // display and error and continue
           console.error(`Error getting my IP from ${serverName}`, error);
-        })
+        }),
     );
 
     return {
@@ -129,7 +129,8 @@ export default defineComponent({
           <td>
             <a href="#" @click="showRecordDetails(myIpRecord)">
               {{
-                ipGeoDict[myIpRecord.clientIp] && displayedClientLocation(ipGeoDict[myIpRecord.clientIp]!)
+                ipGeoDict[myIpRecord.clientIp] &&
+                displayedClientLocation(ipGeoDict[myIpRecord.clientIp]!)
               }}
             </a>
           </td>

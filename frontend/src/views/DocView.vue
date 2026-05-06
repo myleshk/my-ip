@@ -1,14 +1,10 @@
-<script lang="ts">
-import DocText from "../assets/doc.md";
-import { defineComponent } from "vue";
+<script setup lang="ts">
+import { marked } from "marked";
+import docMarkdown from "../assets/doc.md?raw";
 
-export default defineComponent({
-  components: {
-    DocText,
-  },
-});
+const docHtml = marked.parse(docMarkdown);
 </script>
 
 <template>
-  <DocText />
+  <section v-html="docHtml"></section>
 </template>
