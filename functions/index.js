@@ -1,15 +1,13 @@
-const functions = require("firebase-functions");
+const {onRequest} = require("firebase-functions/v2/https");
 const myip = require("./myip.js");
 const geo = require("./geo.js");
 
 const runtimeOpts = {
   timeoutSeconds: 5,
-  memory: "128MB",
+  memory: "128MiB",
 };
 
-exports.geo = functions
-    .runWith(runtimeOpts)
-    .https.onRequest(geo);
+exports.geo = onRequest(runtimeOpts, geo);
 
 /**
  * get client IP from different regions (JSON)
@@ -24,8 +22,7 @@ const locations = [
   {apiPath: "jp", regionCode: "asia-northeast1"},
 ];
 for (const {apiPath, regionCode} of locations) {
-  exports[apiPath] = functions
-      .runWith(runtimeOpts)
-      .region(regionCode)
-      .https.onRequest(myip);
+  exports[apiPath] = onRequest(Object.assign({}, runtimeOpts, {
+    region: regionCode,
+  }), myip);
 }
