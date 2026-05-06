@@ -17,6 +17,7 @@ app.get("/myip", (req, res) => {
     return res.status(500).json({error: "Failed to get client IP"});
   }
 
+  res.set("Cache-Control", "private, max-age=10");
   return res.json({clientIp});
 });
 
@@ -28,6 +29,7 @@ app.get("/mygeo", (req, res) => {
 
   fetchGeoInfo(clientIp)
       .then((geoInfo) => {
+        res.set("Cache-Control", "private, max-age=10");
         return res.json(Object.assign({clientIp}, geoInfo));
       })
       .catch(() => {

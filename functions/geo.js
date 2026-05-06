@@ -10,7 +10,10 @@ app.get("/geo/:ip", (req, res) => {
 
   if (ip) {
     return fetchGeoInfo(ip)
-        .then((geoInfo) => res.json(geoInfo))
+        .then((geoInfo) => {
+          res.set("Cache-Control", "public, max-age=86400");
+          return res.json(geoInfo);
+        })
         .catch(() => {
           return res.status(500).json({error: "Failed to get geo info"});
         });
