@@ -26,7 +26,32 @@ const myipApis = [
     serverName: "CN",
     url: "https://my-ip-ip-kcobqzfkvk.cn-hangzhou.fcapp.run/myip",
   },
+  {
+    serverName: "OpenAI",
+    url: "https://chatgpt.com/cdn-cgi/trace",
+  },
+  {
+    serverName: "Claude",
+    url: "https://claude.ai/cdn-cgi/trace",
+  },
 ];
+
+// Trace endpoints return plain text. Reject challenge pages and malformed IPs.
+function traceClientIp(data: unknown): string {
+  if (typeof data !== "string") return "";
+  const ip = data.match(/^ip=([^\r\n]+)$/m)?.[1]?.trim() ?? "";
+  if (ip.includes(":")) {
+    try {
+      return new URL(`https://[${ip}]/`).hostname ? ip : "";
+    } catch {
+      return "";
+    }
+  }
+  return /^(\d{1,3}\.){3}\d{1,3}$/.test(ip) &&
+    ip.split(".").every((part) => Number(part) <= 255)
+    ? ip
+    : "";
+}
 
 type RequestStatus = "loading" | "success" | "error";
 
@@ -80,9 +105,16 @@ export default defineComponent({
 
     rows.forEach((row) =>
       axios
-        .get(row.url)
+        .get(row.url, {
+          timeout: 8000,
+          ...(row.url.endsWith("/cdn-cgi/trace")
+            ? { responseType: "text" as const }
+            : {}),
+        })
         .then(({ data }) => {
-          const { clientIp } = data;
+          const clientIp = row.url.endsWith("/cdn-cgi/trace")
+            ? traceClientIp(data)
+            : data.clientIp;
           if (clientIp) {
             row.clientIp = clientIp;
             row.myIpStatus = "success";
@@ -176,9 +208,11 @@ export default defineComponent({
 <template>
   <section class="myips-table-section">
     <div class="table-header">
-      <h4>Your IP viewed from different locations</h4>
+      <h4>Your IP viewed from different locations and services</h4>
       <p class="table-subtitle">
-        Each row stays visible while requests load; errors are shown per server.
+        Service rows show this browser's exit IP to ChatGPT and Claude, which may
+        differ from CLI or API traffic. A failed check does not prove the service
+        is unavailable.
       </p>
     </div>
 
@@ -193,7 +227,7 @@ export default defineComponent({
       <table class="table table-striped align-middle">
         <thead class="thead-light">
           <tr>
-            <th>Server Location</th>
+            <th>Location / Service</th>
             <th>Your IP</th>
             <th>Your IP Location</th>
           </tr>
