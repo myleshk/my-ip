@@ -17,7 +17,6 @@ const locations = [
   // because Firebase Hosting supports Cloud Functions in us-central1 only.
   // https://firebase.google.com/docs/hosting/full-config#rewrite-functions
   {apiPath: "us", regionCode: "us-central1"},
-  {apiPath: "uk", regionCode: "europe-west2"},
   {apiPath: "hk", regionCode: "asia-east2"},
   {apiPath: "jp", regionCode: "asia-northeast1"},
 ];

@@ -20,7 +20,8 @@ describe("MyIpsTable", () => {
     await wrapper.vm.$nextTick();
 
     const rows = wrapper.findAll("tbody tr");
-    expect(rows).toHaveLength(7);
+    expect(rows).toHaveLength(6);
+    expect(rows.some((row) => row.text().includes("UK"))).toBe(false);
     expect(wrapper.text()).toContain("Loading...");
     expect(wrapper.text()).toContain("HK");
     expect(wrapper.text()).toContain("US");
@@ -41,8 +42,8 @@ describe("MyIpsTable", () => {
     const wrapper = mount(MyIpsTable);
     await flushPromises();
     const rows = wrapper.findAll("tbody tr");
+    expect(rows[4].text()).toContain("203.0.113.7");
     expect(rows[5].text()).toContain("203.0.113.7");
-    expect(rows[6].text()).toContain("203.0.113.7");
     expect(mockedAxiosGet.mock.calls.filter(([url]) => String(url).includes("/geo/"))).toHaveLength(1);
   });
 
@@ -50,7 +51,7 @@ describe("MyIpsTable", () => {
     mockedAxiosGet.mockResolvedValue({ data: "<html>Challenge</html>" });
     const wrapper = mount(MyIpsTable);
     await flushPromises();
-    for (const row of wrapper.findAll("tbody tr").slice(5)) {
+    for (const row of wrapper.findAll("tbody tr").slice(4)) {
       expect(row.text()).toContain("API error");
       expect(row.find("code").exists()).toBe(false);
     }

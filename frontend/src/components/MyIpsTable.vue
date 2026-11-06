@@ -15,10 +15,6 @@ const myipApis = [
     url: "https://asia-northeast1-myip-21bb8.cloudfunctions.net/jp/myip",
   },
   {
-    serverName: "UK",
-    url: "https://europe-west2-myip-21bb8.cloudfunctions.net/uk/myip",
-  },
-  {
     serverName: "US",
     url: "https://us-central1-myip-21bb8.cloudfunctions.net/us/myip",
   },
@@ -75,7 +71,6 @@ export default defineComponent({
     const serverFlagByName: Record<string, string> = {
       HK: "🇭🇰",
       JP: "🇯🇵",
-      UK: "🇬🇧",
       US: "🇺🇸",
       CN: "🇨🇳",
     };
