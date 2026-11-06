@@ -14,8 +14,11 @@ app.get("/geo/:ip", (req, res) => {
           res.set("Cache-Control", "public, max-age=86400");
           return res.json(geoInfo);
         })
-        .catch(() => {
-          return res.status(500).json({error: "Failed to get geo info"});
+        .catch((error) => {
+          res.set("Cache-Control", "no-store");
+          return res.status(error.httpStatus || 500).json({
+            error: error.httpStatus ? error.message : "Failed to get geo info",
+          });
         });
   }
   return res.status(400).json({error: "IP is required"});

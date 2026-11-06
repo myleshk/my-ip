@@ -32,9 +32,10 @@ app.get("/mygeo", (req, res) => {
         res.set("Cache-Control", "private, max-age=10");
         return res.json(Object.assign({clientIp}, geoInfo));
       })
-      .catch(() => {
-        return res.status(500).json({
-          error: "Failed to get geo info",
+      .catch((error) => {
+        res.set("Cache-Control", "no-store");
+        return res.status(error.httpStatus || 500).json({
+          error: error.httpStatus ? error.message : "Failed to get geo info",
           clientIp,
         });
       });

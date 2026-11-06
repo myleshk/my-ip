@@ -4,7 +4,7 @@ const geo = require("./geo.js");
 
 const runtimeOpts = {
   timeoutSeconds: 5,
-  memory: "128MiB",
+  memory: "256MiB",
 };
 
 exports.geo = onRequest(runtimeOpts, geo);
